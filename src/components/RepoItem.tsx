@@ -17,5 +17,5 @@ const RepoItem: React.FC<RepoProps> = ({ name, imageurl }) => {
     
   );
 };
-
+ 
 export default RepoItem;
