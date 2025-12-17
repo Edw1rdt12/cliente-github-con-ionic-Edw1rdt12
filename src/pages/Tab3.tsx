@@ -1,9 +1,26 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
-import { IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle } from '@ionic/react';
+import React, { useEffect, useState } from 'react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle } from '@ionic/react';
+import { getUserInfo } from '../services/GithubService';
+import { UserInfo } from '../services/UserInfo';
 import './Tab3.css';
 
 
 const Tab3: React.FC = () => {
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+
+  const loadUserInfo = async () => {
+    try {
+      const info = await getUserInfo();
+      setUserInfo(info);
+    } catch (err) {
+      console.error('Error cargando información de usuario', err);
+    }
+  };
+
+  useEffect(() => {
+    loadUserInfo();
+  }, []);
+
   return (
     <IonPage>
       <IonHeader>
@@ -18,15 +35,19 @@ const Tab3: React.FC = () => {
           </IonToolbar>
         </IonHeader>
         <IonCard>
-          <img alt="Silhouette of mountains" src="https://cdn-img.zerozero.pt/img/jogadores/new/45/16/434516_matias_romero_20250430000629.png" />
+          <img
+            alt={userInfo?.login ?? 'avatar'}
+            src={userInfo?.avatarUrl ?? 'https://via.placeholder.com/150'}
+            style={{ width: 120, height: 120, borderRadius: 8, display: 'block', margin: '16px auto' }}
+          />
           <IonCardHeader>
-            <IonCardTitle>Matias Romero</IonCardTitle>
-            <IonCardSubtitle>matiaca25</IonCardSubtitle>
+            <IonCardTitle>{userInfo?.name ?? userInfo?.login ?? 'Usuario'}</IonCardTitle>
+            <IonCardSubtitle>{userInfo?.login ?? '—'}</IonCardSubtitle>
           </IonCardHeader>
 
-          <IonCardContent>Here's a small text description for the card content. Nothing more, nothing less.</IonCardContent>
+          <IonCardContent>{userInfo?.bio ?? 'Sin biografía'}</IonCardContent>
         </IonCard>
-        ;
+
       </IonContent>
     </IonPage>
   );

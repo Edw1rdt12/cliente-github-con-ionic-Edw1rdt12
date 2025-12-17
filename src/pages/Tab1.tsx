@@ -11,7 +11,20 @@ const Tab1: React.FC = () => {
 
   const loadRepos = async () => {
     const reposData = await fetchRepositories();
-    setRepos(reposData);
+    // Merge any locally created repos (to show immediately)
+    let saved: RepositoryItem[] = [];
+    try {
+      saved = JSON.parse(localStorage.getItem('created_repos') || '[]');
+    } catch {
+      saved = [];
+    }
+
+    const merged = [
+      ...saved,
+      ...reposData.filter((r) => !saved.some((s) => s.name === r.name)),
+    ];
+
+    setRepos(merged);
   };
 
   useIonViewDidEnter(() => {
@@ -37,7 +50,10 @@ const Tab1: React.FC = () => {
             <RepoItem 
               key={index}
               name={repo.name}
-              imageUrl={repo.imageurl}
+              imageUrl={repo.imageUrl}
+              description={repo.description ?? undefined}
+              language={repo.language ?? undefined}
+              stars={repo.stars ?? 0}
             />
           ))}
         </IonList>
