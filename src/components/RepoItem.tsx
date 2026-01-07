@@ -1,5 +1,5 @@
-import { IonItem, IonLabel, IonAvatar, IonBadge, IonIcon } from '@ionic/react';
-import { star } from 'ionicons/icons';
+import { IonItem, IonLabel, IonAvatar, IonBadge, IonIcon, IonButton } from '@ionic/react';
+import { star, create, trash } from 'ionicons/icons';
 import './RepoItem.css';
 
 interface RepoProps {
@@ -8,9 +8,11 @@ interface RepoProps {
   description?: string | null;
   language?: string | null;
   stars?: number;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-const RepoItem: React.FC<RepoProps> = ({ name, imageUrl, description, language, stars }) => {
+const RepoItem: React.FC<RepoProps> = ({ name, imageUrl, description, language, stars, onEdit, onDelete }) => {
   return ( 
     <IonItem lines="full" className="repo-item">
       <IonAvatar slot="start" className="repo-avatar">
@@ -24,6 +26,13 @@ const RepoItem: React.FC<RepoProps> = ({ name, imageUrl, description, language, 
           <div className="repo-stars">{stars ?? 0} <IonIcon icon={star} /></div>
         </div>
       </IonLabel>
+
+      <IonButton slot="end" fill="clear" onClick={onEdit} aria-label="Editar repositorio">
+        <IonIcon icon={create} />
+      </IonButton>
+      <IonButton slot="end" fill="clear" color="danger" onClick={onDelete} aria-label="Eliminar repositorio">
+        <IonIcon icon={trash} />
+      </IonButton>
     </IonItem>
     
   );

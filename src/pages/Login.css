@@ -1,0 +1,111 @@
+.login-container {
+  /* Take almost full viewport height minus header and center everything */
+  min-height: calc(100vh - 56px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .login-container h1 {
+    font-size: 32px;
+  }
+  .login-logo {
+    font-size: 140px;
+  }
+  .login-form {
+    max-width: 480px;
+    padding: 28px;
+  }
+}
+
+.login-logo {
+  font-size: 120px;
+  margin-bottom: 8px;
+  color: var(--ion-color-primary);
+}
+
+.login-container h1 {
+  margin-bottom: 8px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 6px 18px rgba(0,0,0,0.6);
+  letter-spacing: 0.2px;
+  opacity: 0.98;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(255,255,255,0.035);
+  padding: 22px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  align-items: stretch;
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+.login-field {
+  width: 100%;
+  --background: rgba(255,255,255,0.02);
+  --padding-start: 14px;
+  --padding-end: 14px;
+  border-radius: 0; /* bordes cuadrados */
+  height: 48px;
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: box-shadow 160ms ease, border-color 160ms ease;
+  background-clip: padding-box;
+  position: relative;
+}
+
+/* Línea azul inferior al hacer foco */
+.login-field:focus-within {
+  border-color: var(--ion-color-primary, #3880ff);
+  box-shadow: inset 0 -4px 0 0 var(--ion-color-primary, #3880ff);
+  outline: none;
+}
+
+.login-field:hover {
+  border-color: rgba(255,255,255,0.12);
+}
+
+/* Asegurar que el input interno no muestre outline por defecto */
+.login-field input:focus {
+  outline: none;
+}
+
+.error-message {
+  display: block;
+  text-align: center;
+  margin: 0;
+  font-weight: 600;
+  color: var(--ion-color-danger, #eb445a);
+}
+
+.login-button {
+  margin-top: 8px;
+  --background: var(--ion-color-primary, #3880ff);
+  --border-radius: 8px;
+  color: #fff;
+  font-weight: 600;
+}
+
+.login-hint {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
+}
+
+.login-hint p {
+  margin: 0;
+}

@@ -10,18 +10,32 @@ const Tab2: React.FC = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [privateRepo, setPrivateRepo] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [suggestedName, setSuggestedName] = useState<string | null>(null);
 
   // Use real createRepository from service
   const saveRepository = async () => {
-    if (name.trim() === '') {
-      alert('El nombre del repositorio es obligatorio');
+    const trimmedName = name.trim();
+    if (trimmedName === '') {
+      setToastMessage('El nombre del repositorio es obligatorio');
+      setShowToast(true);
       return;
     }
+
+    // Validación local consistente con GitHub
+    const NAME_REGEX = /^[a-zA-Z0-9_.-]+$/;
+    if (!NAME_REGEX.test(trimmedName)) {
+      setToastMessage('Nombre inválido: usa sólo letras, números, guiones (-), guiones bajos (_) o puntos (.)');
+      setShowToast(true);
+      return;
+    }
+
+    setSaving(true);
 
     try {
       // dynamic import from service
       const { createRepository } = await import('../services/GithubService');
-      const created = await createRepository({ name: name.trim(), description: description.trim() || null, private: privateRepo });
+      const created = await createRepository({ name: trimmedName, description: description.trim() || null, private: privateRepo });
 
       // Store newly created repo locally so Tab1 can show it immediately
       try {
@@ -42,7 +56,16 @@ const Tab2: React.FC = () => {
       }, 900);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      alert('Hubo un problema al crear el repositorio: ' + message);
+      // Si el error indica que el nombre ya existe, generar una sugerencia
+      if (message.toLowerCase().includes('ya existe') || message.toLowerCase().includes('name already exists') || message.toLowerCase().includes('already been taken')) {
+        setSuggestedName(`${trimmedName}-1`);
+      } else {
+        setSuggestedName(null);
+      }
+      setToastMessage('Hubo un problema al crear el repositorio: ' + message);
+      setShowToast(true);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -70,6 +93,15 @@ const Tab2: React.FC = () => {
             placeholder="android-project"
             className='form-field'
           />
+          {suggestedName && (
+            <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
+              <div style={{ color: 'var(--ion-color-medium)', fontSize: 13 }}>Sugerencia:</div>
+              <div style={{ fontWeight: 600 }}>{suggestedName}</div>
+              <IonButton size="small" fill="clear" onClick={() => setName(suggestedName)}>
+                Usar
+              </IonButton>
+            </div>
+          )}
 
           <IonTextarea
             value={description}
@@ -89,8 +121,8 @@ const Tab2: React.FC = () => {
             </label>
           </div>
 
-          <IonButton expand="block" className='form-field' onClick={saveRepository} disabled={!name.trim()}>
-            Guardar repositorio
+          <IonButton expand="block" className='form-field' onClick={saveRepository} disabled={!name.trim() || saving}>
+            {saving ? 'Guardando...' : 'Guardar repositorio'}
           </IonButton>
         </div>
 

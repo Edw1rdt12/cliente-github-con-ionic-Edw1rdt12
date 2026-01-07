@@ -1,0 +1,68 @@
+.profile-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+}
+
+.profile-card {
+  width: 100%;
+  max-width: 520px;
+  border-radius: 14px;
+  overflow: visible;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+  padding-bottom: 18px;
+}
+
+.avatar-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,0.06);
+  object-fit: cover;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  background: #222;
+}
+
+.profile-header {
+  text-align: center;
+  padding-top: 12px;
+}
+
+.profile-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.profile-login {
+  color: rgba(255,255,255,0.7);
+  font-size: 14px;
+}
+
+.profile-bio {
+  text-align: center;
+  color: rgba(255,255,255,0.8);
+  margin-top: 12px;
+  padding: 0 20px;
+}
+
+.profile-actions {
+  padding: 16px 20px 10px 20px;
+}
+
+@media (max-width: 480px) {
+  .profile-avatar {
+    width: 96px;
+    height: 96px;
+  }
+  .profile-card {
+    padding-bottom: 14px;
+  }
+}
