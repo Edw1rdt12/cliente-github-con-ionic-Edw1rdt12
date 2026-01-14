@@ -33,7 +33,7 @@ export const fetchRepositories = async (): Promise<RepositoryItem[]> => {
             owner?: { avatar_url?: string; login?: string } | null;
             language?: string | null;
         };
-        const response = await githubApi.get<GHRepo[]>('/user/repos', {
+        const response = await githubApi.get('/user/repos', {
             params: {
                 per_page: 100,
                 sort: "created",
@@ -41,14 +41,30 @@ export const fetchRepositories = async (): Promise<RepositoryItem[]> => {
             }
         });
 
-        const repositories: RepositoryItem[] = response.data.map((repo) => ({
+        // Inspect raw response data to handle different possible shapes
+        const raw = response.data;
+        // DEBUG: mostrar la forma real de la respuesta para facilitar diagnóstico
+        console.debug('fetchRepositories response.data:', raw);
+
+        // Normalizar: buscar un array en distintos lugares comunes
+        let list: any[] | null = null;
+        if (Array.isArray(raw)) list = raw;
+        else if (raw && Array.isArray(raw.items)) list = raw.items;
+        else if (raw && Array.isArray(raw.data)) list = raw.data;
+
+        if (!list) {
+            // No es el arreglo esperado — lanzar error con info útil
+            throw new Error(`Formato inesperado de respuesta al obtener repositorios: ${JSON.stringify(raw)}`);
+        }
+
+        const repositories: RepositoryItem[] = list.map((repo: any) => ({
             name: repo.name,
             description: repo.description || null,
             imageUrl: repo.owner ? repo.owner.avatar_url : null,
             owner: repo.owner ? repo.owner.login : null,
             language: repo.language || null,
         }));
-        
+
         return repositories;
 
     } catch (err) {
