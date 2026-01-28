@@ -1,6 +1,9 @@
+// Página/formulario para crear repositorios
+// - Valida nombre y maneja respuesta de la API
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { IonButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonInput, IonTextarea, IonToast } from '@ionic/react';
+import LoadingSpinner from '../components/LoadingSpinner';
 import './Tab2.css';
 
 const Tab2: React.FC = () => {
@@ -127,6 +130,7 @@ const Tab2: React.FC = () => {
         </div>
 
         <IonToast isOpen={showToast} message={toastMessage || "Repositorio creado"} duration={1200} onDidDismiss={() => setShowToast(false)} />
+        <LoadingSpinner isOpen={saving} />
       </IonContent>
     </IonPage>
   );

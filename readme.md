@@ -198,6 +198,22 @@ ionic capacitor open android
 ```
 
 Abrir proyecto iOS en Xcode:
+
+---
+
+## Pruebas e2e (Cypress)
+
+Para ejecutar las pruebas e2e localmente:
+
+- Opción 1 (manualmente):
+  1. En una terminal, ejecuta `npm run dev` para levantar el servidor.
+  2. En otra terminal, ejecuta `npm run test.e2e` para lanzar Cypress en modo headless.
+
+- Opción 2 (arranque automático):
+  1. Instala la herramienta auxiliar: `npm install -D start-server-and-test`.
+  2. Ejecuta `npm run test:e2e:ci` que arrancará el servidor y ejecutará las pruebas automáticamente.
+
+Las pruebas están en `cypress/e2e/github_crud.cy.ts` y usan `cy.intercept` para simular las respuestas de GitHub (no requieren credenciales reales).
 ```bash
 ionic capacitor open ios
 ```

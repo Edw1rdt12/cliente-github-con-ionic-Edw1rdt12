@@ -1,4 +1,5 @@
-import { IonButton, IonContent, IonHeader, IonIcon, IonPage, IonTitle, IonToolbar, useIonViewDidEnter } from '@ionic/react';
+// Página de perfil de usuario: muestra avatar, nombre y bio
+import { IonButton, IonContent, IonHeader, IonIcon, IonPage, IonTitle, IonToolbar, useIonViewDidEnter, IonBadge } from '@ionic/react';
 import { IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle } from '@ionic/react';
 import './Tab3.css';
 import React, { useState } from 'react';
@@ -7,17 +8,25 @@ import { UserInfo } from '../interfaces/UserInfo';
 import { logOutOutline } from 'ionicons/icons';
 import { useHistory } from 'react-router';
 import AuthService from '../services/AuthService';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 
 const Tab3: React.FC = () => {
 
+  // Estado local para datos del usuario y estado de carga
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [loading, setLoading] = useState(false);
   const history = useHistory();
 
 
   const loadUserInfo = async () => {
-    const info = await getUserInfo();
-    setUserInfo(info);
+    setLoading(true);
+    try {
+      const info = await getUserInfo();
+      setUserInfo(info);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useIonViewDidEnter(() => {
@@ -54,9 +63,18 @@ const Tab3: React.FC = () => {
             <IonCardHeader className="profile-header">
               <IonCardTitle className="profile-name">{userInfo?.name ?? userInfo?.login ?? 'Usuario'}</IonCardTitle>
               <IonCardSubtitle className="profile-login">{userInfo?.login}</IonCardSubtitle>
+
+              {/* Estadísticas del usuario (repos, followers, following) */}
+              <div className="profile-stats" style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                <IonBadge color="light">Repos: {userInfo?.public_repos ?? 0}</IonBadge>
+                <IonBadge color="light">Seguidores: {userInfo?.followers ?? 0}</IonBadge>
+                <IonBadge color="light">Siguiendo: {userInfo?.following ?? 0}</IonBadge>
+              </div>
             </IonCardHeader>
 
             <IonCardContent className="profile-bio">{userInfo?.bio ?? 'Sin biografía'}</IonCardContent>
+
+            <LoadingSpinner isOpen={loading} />
 
             <div className="profile-actions">
               <IonButton expand="block" color="danger" onClick={handleLogout}>

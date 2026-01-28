@@ -1,0 +1,27 @@
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  backdrop-filter: blur(2px);
+}
+
+.loading-spinner-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 140px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+}
+
+.loading-spinner {
+  font-size: 80px;
+  color: #fff;
+  transform: scale(1.1);
+}

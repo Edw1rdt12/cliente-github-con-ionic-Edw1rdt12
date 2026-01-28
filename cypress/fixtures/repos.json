@@ -1,0 +1,13 @@
+[
+  {
+    "id": 111,
+    "name": "demo-repo",
+    "description": "Repositorio de ejemplo",
+    "owner": {
+      "login": "student123",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1?v=4"
+    },
+    "language": "TypeScript",
+    "stargazers_count": 2
+  }
+]

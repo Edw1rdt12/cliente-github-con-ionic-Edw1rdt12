@@ -1,0 +1,10 @@
+{
+  "login": "student123",
+  "name": "Estudiante Demo",
+  "bio": "Bio de prueba",
+  "avatar_url": "https://avatars.githubusercontent.com/u/1?v=4",
+  "followers": 5,
+  "following": 2,
+  "public_repos": 3,
+  "location": "Earth"
+}

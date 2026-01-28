@@ -1,10 +1,15 @@
+// Pantalla de login
+// - Pide usuario y Personal Access Token (PAT) de GitHub
+// - Guarda credenciales a través de AuthService
 import { IonButton, IonContent, IonHeader, IonIcon, IonInput, IonPage, IonText, IonTitle, IonToolbar } from "@ionic/react";
 import { logoGithub } from "ionicons/icons";
 import './Login.css';
 import React from "react";
 import AuthService from "../services/AuthService";
+import { useHistory } from "react-router-dom";
 
 const Login: React.FC = () => {
+    const history = useHistory();
     const [username, setUsername] = React.useState('');
     const [token, setToken] = React.useState(''); 
     const [error, setError] = React.useState('');
@@ -20,7 +25,7 @@ const Login: React.FC = () => {
 
         const success = AuthService.login(username, token);
         if (success) {
-            window.location.href = '/tab1';
+            history.push('/tab1');
         } else {
             setError('Error al iniciar sesión. Verifica tus credenciales.');
         }

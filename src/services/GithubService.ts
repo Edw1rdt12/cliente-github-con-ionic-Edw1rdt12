@@ -1,27 +1,53 @@
-import axios from "axios";
-import { RepositoryItem } from "../interfaces/RepositoryItem";
-import { UserInfo } from "../services/UserInfo";
-
-const GITHUB_API_URL = import.meta.env.VITE_API_URL;
+// Servicios para comunicarse con la API de GitHub
+// Proveen funciones reutilizables para la capa de UI: obtener repos, info de usuario y operaciones CRUD
+import axios from 'axios';
+import AuthService from './AuthService';
+// Instancia axios específica para este servicio con políticas de cache-desactivado
+const GITHUB_API_URL = 'https://api.github.com';
 const githubApi = axios.create({
     baseURL: GITHUB_API_URL,
+    timeout: 10000,
+    headers: {
+        Accept: 'application/vnd.github+json',
+    }
 });
 
+// Adjuntar token de AuthService (si existe) a cada petición
 githubApi.interceptors.request.use((config) => {
-    // Prefer environment token, fallback to token stored in localStorage by AuthService
-    const authHeader = import.meta.env.VITE_GITHUB_API_TOKEN ?? localStorage.getItem('github_auth_token');
-    if (authHeader) {
-        config.headers = config.headers ?? {};
-        // GitHub accepts `token <token>` or `Bearer <token>`; using `token` here
-        config.headers.Authorization = `token ${authHeader}`;
+    try {
+        const env = import.meta.env as Record<string, string | undefined>;
+        const envToken = env.VITE_GITHUB_API_TOKEN;
+        // proteger acceso a AuthService en caso de que no esté disponible por alguna razón
+        const token = envToken ?? (typeof AuthService !== 'undefined' && AuthService.getToken ? AuthService.getToken() : null);
+        if (token) {
+            config.headers = config.headers ?? {};
+            (config.headers as Record<string, string>)['Authorization'] = `token ${token}`;
+        }
+
+        // Añadir parámetro anti-cache a GET para evitar usar cabeceras no-safelisted
+        const method = (config.method ?? '').toString().toLowerCase();
+        if (method === 'get') {
+            config.params = {
+                ...(config.params ?? {}),
+                _ts: Date.now(),
+            };
+        }
+    } catch (e) {
+        // no romper la request si ocurre algo inesperado al obtener el token
+        console.warn('GithubService: no se pudo adjuntar token en interceptor', e);
     }
     return config;
 });
+import { RepositoryItem } from "../interfaces/RepositoryItem";
+import { UserInfo } from "../interfaces/UserInfo";
+
+
 
 // --- Obtener Repositorios ---
 export const fetchRepositories = async (): Promise<RepositoryItem[]> => {
-    // Verificar que exista un token disponible (env o localStorage)
-    const token = import.meta.env.VITE_GITHUB_API_TOKEN ?? localStorage.getItem('github_auth_token');
+    // Verificar que exista un token disponible (variable de entorno o AuthService)
+    // Si no hay token, se solicita iniciar sesión en la pantalla Login
+    const token = import.meta.env.VITE_GITHUB_API_TOKEN ?? AuthService.getToken();
     if (!token) {
         throw new Error('No hay token de GitHub. Por favor inicia sesión en la pantalla de Login.');
     }
@@ -78,6 +104,7 @@ export const fetchRepositories = async (): Promise<RepositoryItem[]> => {
 };
 
 // --- Crear Repositorio ---
+// Crea un repositorio usando la cuenta autenticada (POST /user/repos)
 export const createRepository = async (params: { name: string; description?: string | null; private?: boolean; }): Promise<RepositoryItem> => {
     // Validación local: GitHub no permite espacios en el nombre y acepta letras, números, guiones, guiones bajos y puntos
     const NAME_REGEX = /^[a-zA-Z0-9_.-]+$/;
@@ -149,7 +176,9 @@ export const createRepository = async (params: { name: string; description?: str
     }
 };
 
-// --- Obtener Info del Usuario (Corregido) ---
+// --- Obtener Info del Usuario ---
+// Llama a GET /user para recuperar datos del usuario autenticado
+// Mapea campos adicionales (followers, following, public_repos) para la UI
 export const getUserInfo = async () : Promise<UserInfo | null> => {
     try {
         const response = await githubApi.get('/user');
@@ -157,9 +186,13 @@ export const getUserInfo = async () : Promise<UserInfo | null> => {
         // Mapear y retornar la data exitosa
         const userData: UserInfo = {
             login: response.data.login,
-            name: response.data.name,
-            bio: response.data.bio,
-            avatarUrl: response.data.avatar_url
+            name: response.data.name ?? null,
+            bio: response.data.bio ?? null,
+            avatarUrl: response.data.avatar_url ?? null,
+            followers: typeof response.data.followers === 'number' ? response.data.followers : 0,
+            following: typeof response.data.following === 'number' ? response.data.following : 0,
+            public_repos: typeof response.data.public_repos === 'number' ? response.data.public_repos : 0,
+            location: response.data.location ?? null,
         };
 
         return userData;
@@ -173,6 +206,10 @@ export const getUserInfo = async () : Promise<UserInfo | null> => {
             bio: 'undefined',
             // Usar un placeholder real
             avatarUrl: 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png', 
+            followers: 0,
+            following: 0,
+            public_repos: 0,
+            location: null,
         };
 
         return userNotFound;
@@ -180,6 +217,7 @@ export const getUserInfo = async () : Promise<UserInfo | null> => {
 };
 
 // --- Eliminar Repositorio ---
+// Ejecuta DELETE /repos/:owner/:repo. Requiere permisos del token.
 export const deleteRepository = async (owner: string, name: string): Promise<void> => {
     try {
         await githubApi.delete(`/repos/${owner}/${name}`);
@@ -190,8 +228,16 @@ export const deleteRepository = async (owner: string, name: string): Promise<voi
             const errorAny: any = err;
             const status = errorAny?.response?.status;
             const data = errorAny?.response?.data;
-            if (status === 404) throw new Error('Repositorio no encontrado (404).');
-            if (status === 403) throw new Error(data?.message ?? 'Acceso denegado (403) al eliminar repositorio.');
+
+            if (status === 404) {
+                // GitHub suele devolver 404 para recursos no encontrados o cuando el token no tiene permiso
+                throw new Error(`Repositorio ${owner}/${name} no encontrado (404). Comprueba que el nombre es correcto y que tu token tiene permisos (scope 'repo') para eliminarlo.`);
+            }
+
+            if (status === 403) {
+                throw new Error(data?.message ?? `Acceso denegado (403) al eliminar ${owner}/${name}. Verifica que tu token tenga permisos adecuados (scope 'repo').`);
+            }
+
             throw new Error(data?.message ?? errorAny?.message ?? 'Error al eliminar repositorio');
         } catch (parseErr) {
             const fallback = parseErr instanceof Error ? parseErr.message : String(parseErr);
@@ -226,8 +272,15 @@ export const editRepository = async (owner: string, repoName: string, params: { 
             const errorAny: any = err;
             const status = errorAny?.response?.status;
             const data = errorAny?.response?.data;
-            if (status === 404) throw new Error('Repositorio no encontrado (404).');
-            if (status === 403) throw new Error(data?.message ?? 'Acceso denegado (403) al editar repositorio.');
+
+            if (status === 404) {
+                throw new Error(`Repositorio ${owner}/${repoName} no encontrado (404). Comprueba que el nombre y el propietario sean correctos y que tu token tenga permisos (scope 'repo').`);
+            }
+
+            if (status === 403) {
+                throw new Error(data?.message ?? `Acceso denegado (403) al editar ${owner}/${repoName}. Verifica que tu token tenga permisos adecuados (scope 'repo').`);
+            }
+
             if (status === 422) throw new Error(data?.message ?? 'Validación fallida al editar repositorio');
             throw new Error(data?.message ?? errorAny?.message ?? 'Error al editar repositorio');
         } catch (parseErr) {
