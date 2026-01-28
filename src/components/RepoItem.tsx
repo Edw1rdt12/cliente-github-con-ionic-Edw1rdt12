@@ -1,7 +1,4 @@
-// Componente que representa un repositorio en la lista
-// - Soporta acciones rápidas (editar/eliminar) mediante item-sliding
-// - Incluye enlace externo para abrir el repositorio en GitHub
-import { IonItem, IonLabel, IonAvatar, IonBadge, IonIcon, IonItemSliding, IonItemOptions, IonItemOption, IonButton } from '@ionic/react';
+import { IonItem, IonLabel, IonAvatar, IonBadge, IonIcon, IonItemSliding, IonItemOptions, IonItemOption } from '@ionic/react';
 import { star, open } from 'ionicons/icons';
 import './RepoItem.css';
 import { RepositoryItem } from '../interfaces/RepositoryItem';
@@ -32,12 +29,10 @@ const RepoItem: React.FC<RepoProps> = ({ repo, onEdit, onDelete }) => {
         </IonLabel>
 
         {repoUrl && (
-          <IonButton slot="end" fill="clear" href={repoUrl} target="_blank" rel="noreferrer" aria-label="Abrir repositorio">
+          <a slot="end" href={repoUrl} target="_blank" rel="noreferrer" aria-label="Abrir repositorio en GitHub" style={{ textDecoration: 'none', color: 'inherit' }}>
             <IonIcon icon={open} />
-          </IonButton>
+          </a>
         )}
-
-        {/* Botones de editar y eliminar visibles eliminados; se mantienen las opciones del item-slide */}
       </IonItem>
 
       {(onEdit || onDelete) && (
