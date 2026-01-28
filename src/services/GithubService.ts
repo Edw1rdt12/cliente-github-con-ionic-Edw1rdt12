@@ -52,12 +52,6 @@ export const fetchRepositories = async (): Promise<RepositoryItem[]> => {
     }
 
     try {
-        type GHRepo = {
-            name: string;
-            description?: string | null;
-            owner?: { avatar_url?: string; login?: string } | null;
-            language?: string | null;
-        };
         const response = await githubApi.get('/user/repos', {
             params: {
                 per_page: 100,
@@ -72,6 +66,7 @@ export const fetchRepositories = async (): Promise<RepositoryItem[]> => {
         console.debug('fetchRepositories response.data:', raw);
 
         // Normalizar: buscar un array en distintos lugares comunes
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let list: any[] | null = null;
         if (Array.isArray(raw)) list = raw;
         else if (raw && Array.isArray(raw.items)) list = raw.items;
@@ -82,6 +77,7 @@ export const fetchRepositories = async (): Promise<RepositoryItem[]> => {
             throw new Error(`Formato inesperado de respuesta al obtener repositorios: ${JSON.stringify(raw)}`);
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const repositories: RepositoryItem[] = list.map((repo: any) => ({
             name: repo.name,
             description: repo.description || null,
